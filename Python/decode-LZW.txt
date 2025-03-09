@@ -1,0 +1,25 @@
+def lzw_decode(encoded_message):
+    dictionary = {i: chr(i) for i in range(256)}
+    dict_size = 256
+    current_sequence = dictionary[encoded_message[0]]
+    decoded_message = current_sequence
+
+    for code in encoded_message[1:]:
+        if code in dictionary:
+            entry = dictionary[code]
+        elif code == dict_size:
+            entry = current_sequence + current_sequence[0]
+        else:
+            raise ValueError("Invalid LZW encoded message")
+
+        decoded_message += entry
+        dictionary[dict_size] = current_sequence + entry[0]
+        dict_size += 1
+        current_sequence = entry
+
+    return decoded_message
+
+encoded_message = input("Enter the encoded message (space-separated integers): ")
+encoded_message = list(map(int, encoded_message.split()))
+decoded_message = lzw_decode(encoded_message)
+print(f"\nDecoded message: {decoded_message}")

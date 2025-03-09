@@ -1,0 +1,204 @@
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lempel-Ziv Encoding and Decoding</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f4ff;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        header {
+            background-color: #0047ab;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            font-size: 2em;
+        }
+        nav {
+            display: flex;
+            justify-content: center;
+            background-color: #87cefa;
+            padding: 10px 0;
+        }
+        nav button {
+            background-color: #4682b4;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            margin: 0 10px;
+            cursor: pointer;
+            font-size: 1em;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        nav button:hover {
+            background-color: #0056b3;
+        }
+        section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .intro {
+            background-color: #e0f7fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: justify;
+        }
+        .card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #0047ab;
+        }
+        input[type=text], textarea {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #0047ab;
+            color: white;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .output-box {
+            background-color: #e8f5e9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css">
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+</head>
+<body>
+    <header>
+        Lempel-Ziv Encoding and Decoding
+    </header>
+    <nav>
+        <button onclick="window.location.href='#';">Home</button>
+        <button onclick="window.location.href='{% url 'base:aboutus' %}'">About Us</button>
+        <button onclick="window.location.href='{% url 'base:contactus' %}'">Contact Us</button>
+        <button onclick="window.location.href='{% url 'base:f' %}'">Features</button>
+        
+    </nav>
+
+    <section>
+        <div class="intro">
+            <h2>What is Lempel-Ziv Encoding?</h2>
+            <p>Lempel-Ziv encoding is a widely used lossless data compression algorithm. It works by replacing repeated occurrences of data with references to a single copy, making it efficient for various data types.</p>
+        </div>
+        
+
+        <div class="card">
+            <h2>Lempel-Ziv Encoding</h2>
+            <p>Enter a sentence or string to generate its Lempel-Ziv encoded form:</p>
+            <textarea id="sentenceInput" rows="4" placeholder="Enter a sentence..."></textarea>
+            <button py-click="encode_lzw()">Encode</button>
+
+            <div class="output-box" id="encodedOutput">
+                <h3>Encoded Output:</h3>
+                <p id="encodedText"> </p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Lempel-Ziv Decoding</h2>
+            <p>Enter the encoded sequence to decode it back to the original sentence:</p>
+            <input type="text" id="encodedInput" placeholder="Enter encoded sequence...">
+            <button py-click="decode_lzw()">Decode</button>
+
+            <div class="output-box" id="decodedOutput">
+                <h3>Decoded Sentence:</h3>
+                <p id="decodedText"></p>
+            </div>
+        </div>
+    </section>
+
+    <py-script>
+        # Encoding function
+        def encode_lzw(*args):
+            input_text = Element("sentenceInput").element.value
+            if not input_text:
+                encoded_text = "Please enter a sentence."
+            else:
+                dictionary = {chr(i): i for i in range(256)}
+                word = ""
+                result = []
+                for char in input_text:
+                    wc = word + char
+                    if wc in dictionary:
+                        word = wc
+                    else:
+                        result.append(dictionary[word])
+                        dictionary[wc] = len(dictionary)
+                        word = char
+                if word:
+                    result.append(dictionary[word])
+                encoded_text = " ".join(map(str, result))
+            Element("encodedText").write(encoded_text)
+
+        
+        def decode_lzw(*args):
+            encoded_text = Element("encodedInput").element.value
+            try:
+                if not encoded_text:
+                    raise ValueError("Please enter an encoded sequence.")
+                
+                
+                encoded_numbers = list(map(int, encoded_text.split()))
+                
+                # Initialize dictionary
+                dictionary = {i: chr(i) for i in range(256)}
+                word = chr(encoded_numbers.pop(0))
+                result = [word]
+                
+                # Decode 
+                for code in encoded_numbers:
+                    if code in dictionary:
+                        entry = dictionary[code]
+                    elif code == len(dictionary):
+                        entry = word + word[0]
+                    else:
+                        raise ValueError("Invalid encoded sequence.")
+                    
+                    result.append(entry)
+                    dictionary[len(dictionary)] = word + entry[0]
+                    word = entry
+                
+                
+                decoded_text = "".join(result)
+            
+            except ValueError as ve:
+                decoded_text = "Enter the sequence of numbers that you have decoded !"
+            except Exception as e:
+                decoded_text = "An error occurred during decoding."
+            
+            
+            Element("decodedText").write(decoded_text)
+    </py-script>
+</body>
+</html>
+
+
+{% endblock content %}

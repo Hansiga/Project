@@ -1,0 +1,24 @@
+def lzw_encode(message):
+    dictionary = {chr(i): i for i in range(256)}
+    dict_size = 256
+    encoded_message = [ ]
+    current_sequence = ""
+
+    for char in message:
+        combined_sequence = current_sequence + char
+        if combined_sequence in dictionary:
+            current_sequence = combined_sequence
+        else:
+            encoded_message.append(dictionary[current_sequence])
+            dictionary[combined_sequence] = dict_size
+            dict_size += 1
+            current_sequence = char
+
+    if current_sequence:
+        encoded_message.append(dictionary[current_sequence])
+
+    return encoded_message
+
+message = input("Enter the message to encode using LZW: ")
+encoded_message = lzw_encode(message)
+print("\nEncoded message:", encoded_message)
